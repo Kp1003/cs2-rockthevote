@@ -1,6 +1,7 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
+using CounterStrikeSharp.API.Modules.Commands;
 using cs2_rockthevote.Features;
 using Microsoft.Extensions.DependencyInjection;
 using static CounterStrikeSharp.API.Core.Listeners;
@@ -21,9 +22,9 @@ namespace cs2_rockthevote
     public partial class Plugin : BasePlugin, IPluginConfig<Config>
     {
         public override string ModuleName => "RockTheVote";
-        public override string ModuleVersion => "1.8.5";
-        public override string ModuleAuthor => "abnerfs";
-        public override string ModuleDescription => "https://github.com/abnerfs/cs2-rockthevote";
+        public override string ModuleVersion => "1.8.7-host_workshop_map_change";
+        public override string ModuleAuthor => "abnerfs (Updated by kMagic)";
+        public override string ModuleDescription => "https://github.com/Kp1003/cs2-server-plugins";
 
 
         private readonly DependencyManager<Plugin, Config> _dependencyManager;
@@ -57,45 +58,37 @@ namespace cs2_rockthevote
         {
             return $"{Localizer[prefix]} {Localizer[key, values]}";
         }
+
         public override void Load(bool hotReload)
         {
             _dependencyManager.OnPluginLoad(this);
             RegisterListener<OnMapStart>(_dependencyManager.OnMapStart);
-        }
-
-        [GameEventHandler(HookMode.Post)]
-        public HookResult OnChat(EventPlayerChat @event, GameEventInfo info)
-        {
-            var player = Utilities.GetPlayerFromUserid(@event.Userid);
-            if (player is not null)
-            {
-                var text = @event.Text.Trim().ToLower();
-                if (text == "rtv")
-                {
-                    _rtvManager.CommandHandler(player);
-                }
-                else if (text.StartsWith("nominate"))
-                {
-                    var split = text.Split("nominate");
-                    var map = split.Length > 1 ? split[1].Trim() : "";
+            
+            AddCommand("css_rtv", "Rock the vote", (player, info) => {
+                if (player != null) _rtvManager.CommandHandler(player);
+            });
+            
+            AddCommand("css_nominate", "Nominate a map", (player, info) => {
+                if (player != null) {
+                    var map = info.ArgCount > 1 ? info.GetArg(1).Trim() : "";
                     _nominationManager.CommandHandler(player, map);
                 }
-                else if (text.StartsWith("votemap"))
-                {
-                    var split = text.Split("votemap");
-                    var map = split.Length > 1 ? split[1].Trim() : "";
+            });
+            
+            AddCommand("css_votemap", "Vote for a map", (player, info) => {
+                if (player != null) {
+                    var map = info.ArgCount > 1 ? info.GetArg(1).Trim() : "";
                     _votemapManager.CommandHandler(player, map);
                 }
-                else if (text.StartsWith("timeleft"))
-                {
-                    _timeLeft.CommandHandler(player);
-                }
-                else if (text.StartsWith("nextmap"))
-                {
-                    _nextMap.CommandHandler(player);
-                }
-            }
-            return HookResult.Continue;
+            });
+            
+            AddCommand("css_timeleft", "Check time left", (player, info) => {
+                if (player != null) _timeLeft.CommandHandler(player);
+            });
+            
+            AddCommand("css_nextmap", "Check next map", (player, info) => {
+                if (player != null) _nextMap.CommandHandler(player);
+            });
         }
 
         public void OnConfigParsed(Config config)

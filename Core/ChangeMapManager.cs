@@ -78,16 +78,30 @@ namespace cs2_rockthevote
             _plugin.AddTimer(3.0F, () =>
             {
                 Map map = _maps.FirstOrDefault(x => x.Name == NextMap!)!;
-                if (Server.IsMapValid(map.Name))
+                
+                // Check if the map name is a workshop ID (all digits)
+                bool isWorkshopId = !string.IsNullOrEmpty(NextMap) && NextMap.All(char.IsDigit);
+                
+                if (isWorkshopId)
                 {
+                    // Use host_workshop_map for workshop IDs
+                    Server.ExecuteCommand($"host_workshop_map {NextMap}");
+                }
+                else if (Server.IsMapValid(map.Name))
+                {
+                    // Use changelevel for standard maps
                     Server.ExecuteCommand($"changelevel {map.Name}");
                 }
                 else if (map.Id is not null)
                 {
+                    // Fallback to host_workshop_map if map has an ID
                     Server.ExecuteCommand($"host_workshop_map {map.Id}");
                 }
                 else
+                {
+                    // Last resort fallback
                     Server.ExecuteCommand($"ds_workshop_changelevel {map.Name}");
+                }
             });
             return true;
         }
