@@ -1,4 +1,4 @@
-﻿using CounterStrikeSharp.API;
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
@@ -22,7 +22,7 @@ namespace cs2_rockthevote
     public partial class Plugin : BasePlugin, IPluginConfig<Config>
     {
         public override string ModuleName => "RockTheVote";
-        public override string ModuleVersion => "1.8.7-host_workshop_map_change";
+        public override string ModuleVersion => "1.8.8-host_workshop_map_change";
         public override string ModuleAuthor => "abnerfs (Updated by kMagic)";
         public override string ModuleDescription => "https://github.com/Kp1003/cs2-server-plugins";
 

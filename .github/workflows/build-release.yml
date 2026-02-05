@@ -1,0 +1,67 @@
+name: Build and Release
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore
+        
+    - name: Publish plugin
+      run: dotnet publish -c Release -o publish
+    
+    - name: Package release
+      run: |
+        mkdir -p release-files
+        cp publish/*.dll release-files/
+        cp publish/*.pdb release-files/ || true
+        
+        # Copy maplist and lang files if they exist
+        if [ -f maplist.txt ]; then
+          cp maplist.txt release-files/
+        fi
+        
+        if [ -d lang ]; then
+          cp -r lang release-files/
+        fi
+        
+        # Create README
+        cat > release-files/README.txt << EOF
+        RockTheVote - Updated for CSSharp 1.0.362+
+        
+        Installation:
+        1. Extract all files to /addons/counterstrikesharp/plugins/RockTheVote/
+        2. Edit maplist.txt with your maps
+        3. Configure settings in generated config file
+        4. Restart server
+        
+        Updated by kMagic for CounterStrikeSharp 1.0.362+ compatibility
+        Original: https://github.com/abnerfs/cs2-rockthevote
+        EOF
+        
+    - name: Create ZIP
+      run: |
+        cd release-files
+        zip -r ../RockTheVote.zip *
+        
+    - name: Upload to Release
+      uses: softprops/action-gh-release@v1
+      if: github.event_name == 'release'
+      with:
+        files: RockTheVote.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
